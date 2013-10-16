@@ -10,14 +10,14 @@ import android.provider.ContactsContract;
 
 public class ContactContentUrlDownloader implements UrlDownloader {
     @Override
-    public void download(final Context context, final String url, final String filename, final UrlDownloaderCallback callback, final Runnable completion) {
+    public AsyncTask download(final Context context, final String url, final String filename, final UrlDownloaderCallback callback, final Runnable completion) {
         final AsyncTask<Void, Void, Void> downloader = new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(final Void... params) {
                 try {
                     final ContentResolver cr = context.getContentResolver();
                     InputStream is = ContactsContract.Contacts.openContactPhotoInputStream(cr, Uri.parse(url));
-                    callback.onDownloadComplete(ContactContentUrlDownloader.this, is, null);
+                    callback.onDownloadComplete(ContactContentUrlDownloader.this, is, null, null);
                     return null;
                 }
                 catch (final Throwable e) {
@@ -33,6 +33,7 @@ public class ContactContentUrlDownloader implements UrlDownloader {
         };
 
         UrlImageViewHelper.executeTask(downloader);
+        return downloader;
     }
 
     @Override

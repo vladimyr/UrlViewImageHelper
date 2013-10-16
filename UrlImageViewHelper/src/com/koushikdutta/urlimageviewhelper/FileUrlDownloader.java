@@ -8,12 +8,12 @@ import android.os.AsyncTask;
 
 public class FileUrlDownloader implements UrlDownloader {
     @Override
-    public void download(final Context context, final String url, final String filename, final UrlDownloaderCallback callback, final Runnable completion) {
+    public AsyncTask download(final Context context, final String url, final String filename, final UrlDownloaderCallback callback, final Runnable completion) {
         final AsyncTask<Void, Void, Void> downloader = new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(final Void... params) {
                 try {
-                    callback.onDownloadComplete(FileUrlDownloader.this, null, new File(new URI(url)).getAbsolutePath());
+                    callback.onDownloadComplete(FileUrlDownloader.this, null, new File(new URI(url)).getAbsolutePath(), null);
                     return null;
                 }
                 catch (final Throwable e) {
@@ -29,6 +29,7 @@ public class FileUrlDownloader implements UrlDownloader {
         };
 
         UrlImageViewHelper.executeTask(downloader);
+        return downloader;
     }
 
     @Override

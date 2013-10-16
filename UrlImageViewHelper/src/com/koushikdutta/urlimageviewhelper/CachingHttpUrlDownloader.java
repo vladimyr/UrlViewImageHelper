@@ -1,28 +1,34 @@
 package com.koushikdutta.urlimageviewhelper;
 
+import android.content.Context;
+import android.os.AsyncTask;
+import org.apache.http.NameValuePair;
+
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.logging.SimpleFormatter;
 
-import org.apache.http.NameValuePair;
+/**
+ * Created with IntelliJ IDEA.
+ * User: Dario
+ * Date: 29.08.13.
+ * Time: 11:31
+ * To change this template use File | Settings | File Templates.
+ */
 
-import android.content.Context;
-import android.os.AsyncTask;
+public class CachingHttpUrlDownloader implements UrlDownloader {
+    private UrlImageViewHelper.RequestPropertiesCallback mRequestPropertiesCallback;
 
-import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper.RequestPropertiesCallback;
-
-public class HttpUrlDownloader implements UrlDownloader {
-    private RequestPropertiesCallback mRequestPropertiesCallback;
-
-    public RequestPropertiesCallback getRequestPropertiesCallback() {
+    public UrlImageViewHelper.RequestPropertiesCallback getRequestPropertiesCallback() {
         return mRequestPropertiesCallback;
     }
 
-    public void setRequestPropertiesCallback(final RequestPropertiesCallback callback) {
+    public void setRequestPropertiesCallback(final UrlImageViewHelper.RequestPropertiesCallback callback) {
         mRequestPropertiesCallback = callback;
     }
-
 
     @Override
     public AsyncTask download(final Context context, final String url, final String filename, final UrlDownloaderCallback callback, final Runnable completion) {
@@ -57,8 +63,14 @@ public class HttpUrlDownloader implements UrlDownloader {
                         UrlImageViewHelper.clog("Response Code: " + urlConnection.getResponseCode());
                         return null;
                     }
+
                     is = urlConnection.getInputStream();
-                    callback.onDownloadComplete(HttpUrlDownloader.this, is, null, null);
+
+                    // calculate expiration time
+                    Long expirationTime = urlConnection.getHeaderFieldDate("Expires", 0);
+                    expirationTime = expirationTime > System.currentTimeMillis() ? expirationTime : null;
+
+                    callback.onDownloadComplete(CachingHttpUrlDownloader.this, is, filename, expirationTime);
                     return null;
                 }
                 catch (final Throwable e) {
@@ -81,7 +93,7 @@ public class HttpUrlDownloader implements UrlDownloader {
     public boolean allowCache() {
         return true;
     }
-    
+
     @Override
     public boolean canDownloadUrl(String url) {
         return url.startsWith("http");

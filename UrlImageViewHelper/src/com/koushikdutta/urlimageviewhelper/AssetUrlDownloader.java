@@ -8,15 +8,15 @@ import android.os.AsyncTask;
 
 public class AssetUrlDownloader implements UrlDownloader {
     @Override
-    public void download(final Context context, final String url, final String filename,
-            final UrlDownloaderCallback callback, final Runnable completion) {
+    public AsyncTask download(final Context context, final String url, final String filename,
+                              final UrlDownloaderCallback callback, final Runnable completion) {
         final AsyncTask<Void, Void, Void> downloader = new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(final Void... params) {
                 try {
                     String relativePath = url.replaceFirst("file:///android_asset/", "");
                     InputStream is = context.getAssets().open(relativePath);
-                    callback.onDownloadComplete(AssetUrlDownloader.this, is, null);
+                    callback.onDownloadComplete(AssetUrlDownloader.this, is, null, null);
                     return null;
                 }
                 catch (final Throwable e) {
@@ -32,6 +32,7 @@ public class AssetUrlDownloader implements UrlDownloader {
         };
 
         UrlImageViewHelper.executeTask(downloader);
+        return downloader;
     }
 
     @Override
